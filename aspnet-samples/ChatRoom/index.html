@@ -29,12 +29,20 @@
     <script type="text/javascript">
         $(function () {
             // Declare a proxy to reference the hub.
-            var chat = $.connection.chatHub;
+            var chat = $.connection.contentNotificationsHub;
             // Create a function that the hub can call to broadcast messages.
             chat.client.broadcastMessage = function (name, message) {
                 // Html encode display name and message.
                 var encodedName = $('<div />').text(name).html();
                 var encodedMsg = $('<div />').text(message).html();
+                // Add the message to the page.
+                $('#discussion').append('<li><strong>' + encodedName
+                    + '</strong>:&nbsp;&nbsp;' + encodedMsg + '</li>');
+            };
+            chat.client.receieveNotification = function (object) {
+                // Html encode display name and message.
+                var encodedName = $('<div />').text('Mr Black').html();
+                var encodedMsg = JSON.stringify(object);
                 // Add the message to the page.
                 $('#discussion').append('<li><strong>' + encodedName
                     + '</strong>:&nbsp;&nbsp;' + encodedMsg + '</li>');

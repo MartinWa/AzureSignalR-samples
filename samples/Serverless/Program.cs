@@ -3,6 +3,8 @@
 
 using System;
 using System.IO;
+using System.Reflection.Metadata;
+using System.Threading.Tasks;
 using Microsoft.Extensions.CommandLineUtils;
 using Microsoft.Extensions.Configuration;
 
@@ -10,70 +12,86 @@ namespace Microsoft.Azure.SignalR.Samples.Serverless
 {
     class Program
     {
-        static void Main(string[] args)
+        static async Task<int> Main(string[] args)
         {
-            var app = new CommandLineApplication();
-            app.FullName = "Azure SignalR Serverless Sample";
-            app.HelpOption("--help");
+            const string connectionString = "Endpoint=https://zero-dev.service.signalr.net;AccessKey==;Version=1.0;";
+            const string hubName = "chatHub";
+            const string userId = "6191";
 
-            var connectionStringOption = app.Option("-c|--connectionstring", "Set ConnectionString", CommandOptionType.SingleValue, true);
-            var hubOption = app.Option("-h|--hub", "Set hub", CommandOptionType.SingleValue, true);
+            var server = new ServerHandler(connectionString, hubName);
+            await server.Start();
+            return 0;
 
-            var configuration = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddUserSecrets<Program>()
-                .Build();
+            //var client = new ClientHandler(connectionString, hubName, userId);
+            //await client.StartAsync();
+            //Console.WriteLine("Client started...");
+            //Console.ReadLine();
+            //await client.DisposeAsync();
+            //return 0;
 
-            app.Command("client", cmd =>
-            {
-                cmd.Description = "Start a client to listen to the service";
-                cmd.HelpOption("--help");
 
-                var userId = cmd.Argument("<userId>", "Set User ID");
 
-                cmd.OnExecute(async () =>
-                {
-                    var connectionString = connectionStringOption.Value() ?? configuration["Azure:SignalR:ConnectionString"];
+            //var app = new CommandLineApplication {FullName = "Azure SignalR Serverless Sample"};
+            //app.HelpOption("--help");
 
-                    if (string.IsNullOrEmpty(connectionString) || !hubOption.HasValue())
-                    {
-                        MissOptions();
-                        return 0;
-                    }
+            //var connectionStringOption = app.Option("-c|--connectionstring", "Set ConnectionString", CommandOptionType.SingleValue, true);
+            //var hubOption = app.Option("-h|--hub", "Set hub", CommandOptionType.SingleValue, true);
 
-                    var client = new ClientHandler(connectionString, hubOption.Value(), userId.Value);
+            //var configuration = new ConfigurationBuilder()
+            //    .SetBasePath(Directory.GetCurrentDirectory())
+            //    .AddUserSecrets<Program>()
+            //    .Build();
 
-                    await client.StartAsync();
-                    Console.WriteLine("Client started...");
-                    Console.ReadLine();
-                    await client.DisposeAsync();
+            //app.Command("client", cmd =>
+            //{
+            //    cmd.Description = "Start a client to listen to the service";
+            //    cmd.HelpOption("--help");
 
-                    return 0;
-                });
-            });
+            //    var userId = cmd.Argument("<userId>", "Set User ID");
 
-            app.Command("server", cmd =>
-            {
-                cmd.Description = "Start a server to send message through RestAPI";
-                cmd.HelpOption("--help");
+            //    cmd.OnExecute(async () =>
+            //    {
+            //        var connectionString = connectionStringOption.Value() ?? configuration["Azure:SignalR:ConnectionString"];
 
-                cmd.OnExecute(async () =>
-                {
-                    var connectionString = connectionStringOption.Value() ?? configuration["Azure:SignalR:ConnectionString"];
+            //        if (string.IsNullOrEmpty(connectionString) || !hubOption.HasValue())
+            //        {
+            //            MissOptions();
+            //            return 0;
+            //        }
 
-                    if (string.IsNullOrEmpty(connectionString) || !hubOption.HasValue())
-                    {
-                        MissOptions();
-                        return 0;
-                    }
+            //        var client = new ClientHandler(connectionString, hubOption.Value(), userId.Value);
 
-                    var server = new ServerHandler(connectionString, hubOption.Value());
-                    await server.Start();
-                    return 0;
-                });
-            });
+            //        await client.StartAsync();
+            //        Console.WriteLine("Client started...");
+            //        Console.ReadLine();
+            //        await client.DisposeAsync();
 
-            app.Execute(args);
+            //        return 0;
+            //    });
+            //});
+
+            //app.Command("server", cmd =>
+            //{
+            //    cmd.Description = "Start a server to send message through RestAPI";
+            //    cmd.HelpOption("--help");
+
+            //    cmd.OnExecute(async () =>
+            //    {
+            //        var connectionString = connectionStringOption.Value() ?? configuration["Azure:SignalR:ConnectionString"];
+
+            //        if (string.IsNullOrEmpty(connectionString) || !hubOption.HasValue())
+            //        {
+            //            MissOptions();
+            //            return 0;
+            //        }
+
+            //        var server = new ServerHandler(connectionString, hubOption.Value());
+            //        await server.Start();
+            //        return 0;
+            //    });
+            //});
+
+            //app.Execute(args);
         }
 
         private static void MissOptions()
